@@ -25,6 +25,7 @@ window/size/transparent=true
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/per_pixel_transparency/allowed=true
+window/vsync/vsync_mode=0
 
 [editor_plugins]
 
@@ -39,4 +40,5 @@ enabled=PackedStringArray("res://addons/godot_super-wakatime/plugin.cfg")
 rendering_device/driver.windows="d3d12"
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.3019608, 0.3019608, 0.3019608, 0)
 viewport/transparent_background=true

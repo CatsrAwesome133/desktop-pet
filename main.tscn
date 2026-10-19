@@ -148,8 +148,8 @@ position = Vector2(101.25001, 100.75)
 scale = Vector2(0.779297, 0.7910157)
 sprite_frames = SubResource("SpriteFrames_7dm0k")
 animation = &"idle"
-frame = 7
-frame_progress = 0.3922855
+frame = 3
+frame_progress = 0.09115902
 
 [node name="Area2D" type="Area2D" parent="." unique_id=1823567980]
 

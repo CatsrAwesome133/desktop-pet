@@ -320,7 +320,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_gngh3")
 }],
-"loop": 1,
+"loop": 0,
 "name": &"drag_left",
 "speed": 12.0
 }, {
@@ -343,7 +343,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_hrvbo")
 }],
-"loop": 1,
+"loop": 0,
 "name": &"drag_right",
 "speed": 12.0
 }, {
@@ -529,9 +529,9 @@ script = ExtResource("1_0xm2m")
 position = Vector2(97, 103.99999)
 scale = Vector2(0.79980475, 0.8095704)
 sprite_frames = SubResource("SpriteFrames_7dm0k")
-animation = &"drag"
+animation = &"drag_left"
 frame = 5
-frame_progress = 0.54689616
+frame_progress = 1.0
 
 [node name="Area2D" type="Area2D" parent="." unique_id=1823567980]
 

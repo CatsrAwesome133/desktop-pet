@@ -1,7 +1,7 @@
 # To-Do
 ## Sprites
-- walk anim
-- drag anim
+- ~~walk anim~~
+- ~~drag anim~~
 - hit the floor anim
 - idle anims
 	- sleep
@@ -12,3 +12,4 @@
 - pet them
 - throw them
 - right click interactions
+- drag directions

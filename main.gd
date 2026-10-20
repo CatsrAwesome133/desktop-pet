@@ -18,6 +18,7 @@ var last_anim = ""
 var drag_v = Vector2() # in pps
 var last_mouse = Vector2()
 var current_direction = -1
+var anim = {}
 
 var turning = false
 var idle = false
@@ -67,6 +68,27 @@ func _physics_process(delta: float) -> void:
 		current_direction = sign(velocity.x)
 		last_mouse = mouse_pos
 		print("Dragging at: ", drag_v)
+		
+		if sign(velocity.x) == 1:
+			anim = {
+				"left": "drag_right",
+				"right": "drag_left",
+			}
+		if sign(velocity.x) == -1:
+			anim = {
+				"left": "drag_left",
+				"right": "drag_right",
+			}
+		
+		if abs(drag_v.x) > 100:
+			print("Woah that's fast")
+			print("You're going ", sign(drag_v.x))
+			if sign(drag_v.x) == 1:
+				ghost.play(anim["right"])
+			if sign(drag_v.x) == -1:
+				ghost.play(anim["left"])
+		else:
+			ghost.play("drag")
 		DisplayServer.window_set_position(Vector2i(new_win_pos))
 		return
 	
@@ -171,6 +193,7 @@ func _on_area_input(_viewport, event, _shape_idx):
 			ghost.play("drag_start")
 			await ghost.animation_finished
 			ghost.play("drag")
+
 
 func _input(event):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:

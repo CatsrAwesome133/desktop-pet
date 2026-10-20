@@ -24,6 +24,7 @@ var turning = false
 var idle = false
 var just_turned = "none"
 var dragging = false
+var just_stopped = false
 
 var screen_size = Vector2()
 var current_screen = DisplayServer.window_get_current_screen()
@@ -59,13 +60,13 @@ func _ready():
 func _physics_process(delta: float) -> void:
 	var window_position = Vector2(DisplayServer.window_get_position())
 	var next_pos = window_position + (velocity + acc*delta)*delta
+	current_direction = sign(velocity.x)
 	
 	# Dragging trigger
 	if dragging:
 		var mouse_pos = Vector2(DisplayServer.mouse_get_position())
 		var new_win_pos = mouse_pos - drag_offset
 		drag_v = (mouse_pos - last_mouse) / delta
-		current_direction = sign(velocity.x)
 		last_mouse = mouse_pos
 		print("Dragging at: ", drag_v)
 		
@@ -78,6 +79,11 @@ func _physics_process(delta: float) -> void:
 			anim = {
 				"left": "drag_left",
 				"right": "drag_right",
+			}
+		if sign(velocity.x) == 0:
+			anim = {
+				"left": "drag",
+				"right": "drag",
 			}
 		
 		if abs(drag_v.x) > 100:
@@ -150,9 +156,11 @@ func _physics_process(delta: float) -> void:
 	
 	
 	# stop bouncing eventually
-	if window_position.y > all_screens.y:
-		window_position.x = all_screens.y
-		velocity.y = 0
+	if window_position.y >= all_screens.y:
+		if just_stopped:
+			pass
+		else:
+			maybe_idle(1.0)
 	
 	var target_v = Vector2()
 	if sign(velocity.x) == -1:
@@ -164,7 +172,11 @@ func _physics_process(delta: float) -> void:
 	if abs(velocity.x) <= (start_again.x * -1) + 5:
 		velocity = target_v
 	
-	fix_turning()
+	if not turning:
+		if sign(velocity.x) == 1:
+			ghost.flip_h = true
+		elif sign(velocity.x) == -1:
+			ghost.flip_h = false
 	
 	net.y = G.y
 	
@@ -221,6 +233,7 @@ func maybe_idle(freq):
 	if randf() < freq: # this is the chance it rests
 		prev_direction = sign(velocity.x)
 		idle = true
+		just_stopped = true
 		idle_timer = randf_range(1.0, 3.0) # a-b seconds
 		var r = randi() % 3
 		if r != 4:
@@ -229,17 +242,22 @@ func maybe_idle(freq):
 
 
 func fix_turning():
-	if just_turned != "none":
-		if just_turned == "right":
-			ghost.play("turn_right")
-		elif just_turned == "left":
-			ghost.play("turn_left")
-		await ghost.animation_finished
-		just_turned = "none"
-		if prev_direction == 1:
-			ghost.flip_h = true
-		else:
-			ghost.flip_h = false
+	var last_tick = sign(velocity.x)
+	var prev_tick = current_direction
+	if not turning and not idle:
+		match [last_tick, prev_tick]:
+			[1, 1]: # both right
+				ghost.flip_h = true
+			[-1, -1]: # both left
+				ghost.flip_h = false
+			[1, -1]: # turn to right
+				ghost.play("turn_right")
+				await ghost.animation_finished
+				ghost.flip_h = true
+			[-1, 1]: # turn to left
+				ghost.play("turn_left")
+				await ghost.animation_finished
+				ghost.flip_h = false
 
 
 func accelerate_until(speed):

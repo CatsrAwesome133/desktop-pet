@@ -2,40 +2,49 @@ extends Node2D
 
 # coords in (x,y); +x is right and +y is down (cough cough turtle)
 var velocity = Vector2(-130, 0) #speedisavector  in pixels per second
-var ghost_mass = Vector2(1, 1) # completley useless vector2
-var f = Vector2(10, 10) # in pixels mass per second
-var G = Vector2(0, 980)
-var drag = Vector2(0.9, 0.4) # in % of original speed0
+var ghost_mass = Vector2(1, 1) # completley useless vector2 in arbitraty unit of mass
+var f = Vector2(10, 10) # in arbitraty unit of force
+var G = Vector2(0, 1800) # gravity in arbitrary units of force
+var drag = Vector2(0.9, 0.4) # in % of original speed
 var margin = 30
 
-var net = Vector2(0, 0)
-var max_v = Vector2(300,300)
-var idle_timer = 0.0
+var net = Vector2(0, 0) # in arbitraty unit of force
+var max_v = Vector2(300,300) # currently redundant; in pps
+var idle_timer = 0.0 # in seconds
 var acc = Vector2(0, 0) # in pixels per second
 var tick = 0
 var prev_direction = -1
+var last_anim = ""
+var drag_v = Vector2() # in pps
+var last_mouse = Vector2()
+var current_direction = -1
 
 var turning = false
 var idle = false
 var just_turned = "none"
+var dragging = false
 
 var screen_size = Vector2()
 var current_screen = DisplayServer.window_get_current_screen()
 var screen_origin = Vector2(DisplayServer.screen_get_usable_rect(current_screen).position) # this is so that the pet can live in all screens
 var window_size = Vector2(200.0,200.0)
 var all_screens = Vector2()
+var drag_offset = Vector2()
 var os_name = "" # currently redundant
 
 var start_again = Vector2(-130, 0)
+var neutral = Vector2(-130, G.y * ghost_mass.y)
 
 
 @onready var ghost = $AnimatedSprite2D
+@onready var area = $Area2D
 
 
 func _ready():
 	screen_size = Vector2(DisplayServer.screen_get_size(current_screen))
 	all_screens = Vector2((screen_size + screen_origin) - window_size)
 	all_screens.x += margin
+	area.input_event.connect(_on_area_input)
 	os_name = OS.get_name()
 	
 	print("Origin: ", screen_origin)
@@ -47,9 +56,24 @@ func _ready():
 	DisplayServer.window_set_position(Vector2i(all_screens.x/6, all_screens.y - 10))
 
 func _physics_process(delta: float) -> void:
+	var window_position = Vector2(DisplayServer.window_get_position())
+	var next_pos = window_position + (velocity + acc*delta)*delta
+	
+	# Dragging trigger
+	if dragging:
+		var mouse_pos = Vector2(DisplayServer.mouse_get_position())
+		var new_win_pos = mouse_pos - drag_offset
+		drag_v = (mouse_pos - last_mouse) / delta
+		current_direction = sign(velocity.x)
+		last_mouse = mouse_pos
+		print("Dragging at: ", drag_v)
+		DisplayServer.window_set_position(Vector2i(new_win_pos))
+		return
+	
+	# Idle triggers
 	if idle:
 		idle_timer -= delta
-		if idle_timer <= 0:
+		if idle_timer <= 0 and window_position.y >= all_screens.y - 15:
 			idle = false
 			start_again = Vector2(130*prev_direction, 0)
 			velocity = start_again
@@ -67,8 +91,6 @@ func _physics_process(delta: float) -> void:
 			ghost.play("walk")
 		return
 	
-	var window_position = Vector2(DisplayServer.window_get_position())
-	var next_pos = window_position + (velocity + acc*delta)*delta
 	just_turned = "none"
 	
 	# Bottom Boundary Bounce
@@ -104,6 +126,24 @@ func _physics_process(delta: float) -> void:
 			turn("left")
 		just_turned = "left"
 	
+	
+	# stop bouncing eventually
+	if window_position.y > all_screens.y:
+		window_position.x = all_screens.y
+		velocity.y = 0
+	
+	var target_v = Vector2()
+	if sign(velocity.x) == -1:
+		target_v = Vector2(start_again.x, 0)
+		velocity = velocity.lerp(target_v, 2 * delta)
+	elif sign(velocity.x) == 1:
+		target_v = Vector2(start_again.x * -1, 0)
+		velocity = velocity.lerp(target_v, 2 * delta)
+	if abs(velocity.x) <= (start_again.x * -1) + 5:
+		velocity = target_v
+	
+	fix_turning()
+	
 	net.y = G.y
 	
 	# physics
@@ -117,6 +157,29 @@ func _physics_process(delta: float) -> void:
 	
 	
 	DisplayServer.window_set_position(Vector2i(window_position))
+
+
+func _on_area_input(_viewport, event, _shape_idx):
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			print("HEY WE MOVE")
+			dragging = true
+			last_anim = ghost.animation
+			print(last_anim)
+			drag_offset = Vector2(90, 55)
+			
+			ghost.play("drag_start")
+			await ghost.animation_finished
+			ghost.play("drag")
+
+func _input(event):
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if not event.pressed:
+			dragging = false
+			velocity = drag_v
+			ghost.play("drag_stop")
+			await ghost.animation_finished
+			ghost.play(last_anim)
 
 
 func turn(direction):
@@ -140,6 +203,20 @@ func maybe_idle(freq):
 		if r != 4:
 			ghost.play("idle")
 			velocity.x = 0
+
+
+func fix_turning():
+	if just_turned != "none":
+		if just_turned == "right":
+			ghost.play("turn_right")
+		elif just_turned == "left":
+			ghost.play("turn_left")
+		await ghost.animation_finished
+		just_turned = "none"
+		if prev_direction == 1:
+			ghost.flip_h = true
+		else:
+			ghost.flip_h = false
 
 
 func accelerate_until(speed):

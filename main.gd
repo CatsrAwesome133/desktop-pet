@@ -255,8 +255,7 @@ func maybe_idle(freq):
 		idle = true
 		just_stopped = true
 		idle_timer = randf_range(1.0, 3.0) # a-b seconds
-		var r = randi() % 3
-		match r:
+		match randi() % 2:
 			0:
 				ghost.play("idle")
 				velocity.x = 0
@@ -265,9 +264,6 @@ func maybe_idle(freq):
 				ghost.play("map_start")
 				velocity.x = 0
 				idle_mode = "map"
-			2: # placeholder
-				ghost.play("idle")
-				velocity.x = 0
 
 
 func fix_turning():
@@ -292,6 +288,14 @@ func fix_turning():
 func maybe_shade():
 	if randf() < 0.0001:
 		var last_anim = ghost.animation
-		ghost.play("shade")
+		match randi() % 4:
+			0:
+				ghost.play("shade")
+			1:
+				ghost.play("shade1")
+			2:
+				ghost.play("shade2")
+			3:
+				ghost.play("shade_yes")
 		await ghost.animation_finished
 		ghost.play(last_anim)

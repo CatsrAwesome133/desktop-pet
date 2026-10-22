@@ -4,6 +4,8 @@
 [ext_resource type="Texture2D" uid="uid://ws3dji76lvvk" path="res://spritesheet.png" id="2_h2yge"]
 [ext_resource type="Texture2D" uid="uid://48cxtfchdc8r" path="res://shade.png" id="3_1bvp3"]
 [ext_resource type="Texture2D" uid="uid://b50iwcxfficcr" path="res://tl overshoot.png" id="3_h2yge"]
+[ext_resource type="Texture2D" uid="uid://kggq64p1drht" path="res://shade_hell.png" id="4_7mycd"]
+[ext_resource type="Texture2D" uid="uid://cdmsrfmhl3ffq" path="res://shade_cursed.png" id="5_272bh"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_1bvp3"]
 atlas = ExtResource("2_h2yge")
@@ -621,6 +623,36 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
+"texture": ExtResource("4_7mycd")
+}],
+"loop": 0,
+"name": &"shade1",
+"speed": 12.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("5_272bh")
+}],
+"loop": 0,
+"name": &"shade2",
+"speed": 24.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_1bvp3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_272bh")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_7mycd")
+}],
+"loop": 0,
+"name": &"shade_yes",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_ntx8l")
 }, {
 "duration": 1.0,
@@ -711,7 +743,8 @@ script = ExtResource("1_0xm2m")
 position = Vector2(99, 104)
 scale = Vector2(0.79980475, 0.8095704)
 sprite_frames = SubResource("SpriteFrames_7dm0k")
-animation = &"shade"
+animation = &"shade2"
+frame_progress = 1.0
 
 [node name="Area2D" type="Area2D" parent="." unique_id=1823567980]
 

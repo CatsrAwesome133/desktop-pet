@@ -25,6 +25,7 @@ var idle = false
 var just_turned = "none"
 var dragging = false
 var just_stopped = false
+var idle_mode = "none"
 
 var screen_size = Vector2()
 var current_screen = DisplayServer.window_get_current_screen()
@@ -68,6 +69,7 @@ func _physics_process(delta: float) -> void:
 		var new_win_pos = mouse_pos - drag_offset
 		drag_v = (mouse_pos - last_mouse) / delta
 		last_mouse = mouse_pos
+		idle = false
 		print("Dragging at: ", drag_v)
 		
 		if sign(velocity.x) == 1:
@@ -105,6 +107,9 @@ func _physics_process(delta: float) -> void:
 			idle = false
 			start_again = Vector2(130*prev_direction, 0)
 			velocity = start_again
+			if idle_mode == "map":
+				ghost.play("map_stop")
+				await ghost.animation_finished
 			if just_turned != "none":
 				if just_turned == "right":
 					ghost.play("turn_right")
@@ -116,6 +121,7 @@ func _physics_process(delta: float) -> void:
 				ghost.flip_h = true
 			else:
 				ghost.flip_h = false
+			idle_mode = "none"
 			ghost.play("walk")
 		return
 	
@@ -189,11 +195,23 @@ func _physics_process(delta: float) -> void:
 	print("Acc: ", acc)
 	print(window_position)
 	
-	
+	maybe_shade()
 	DisplayServer.window_set_position(Vector2i(window_position))
 
 
 func _on_area_input(_viewport, event, _shape_idx):
+	var window_position = Vector2(DisplayServer.window_get_position())
+	if event is InputEventMouseButton and event.double_click:
+		print("Double click!")
+		if window_position.y >= all_screens.y:
+			print("We're on the ground too!")
+			ghost.play("pet")
+			idle_timer = 100
+			idle = true
+			await ghost.animation_finished
+			idle_timer = 0
+			idle = false
+		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
 			print("HEY WE MOVE")
@@ -236,9 +254,18 @@ func maybe_idle(freq):
 		just_stopped = true
 		idle_timer = randf_range(1.0, 3.0) # a-b seconds
 		var r = randi() % 3
-		if r != 4:
-			ghost.play("idle")
-			velocity.x = 0
+		match r:
+			0:
+				ghost.play("idle")
+				velocity.x = 0
+				idle_mode = "stand"
+			1: # placeholder
+				ghost.play("map_start")
+				velocity.x = 0
+				idle_mode = "map"
+			2: # placeholder
+				ghost.play("idle")
+				velocity.x = 0
 
 
 func fix_turning():
@@ -260,17 +287,9 @@ func fix_turning():
 				ghost.flip_h = false
 
 
-func accelerate_until(speed):
-	var diff = Vector2(10, 10)
-	if speed.x - velocity.x != 0:
-		diff.x = 10
-	if speed.y - velocity.y != 0:
-		diff.y = 10
-	velocity += (speed - velocity)/5 + diff
-	tick += 1
-	if abs(speed-velocity) <= diff:
-		acc = Vector2(0, 0)
-		velocity = speed
-		tick = 0
-	
-	return speed
+func maybe_shade():
+	if randf() < 0.0001:
+		var last_anim = ghost.animation
+		ghost.play("shade")
+		await ghost.animation_finished
+		ghost.play(last_anim)

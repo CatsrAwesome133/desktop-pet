@@ -201,14 +201,16 @@ func _physics_process(delta: float) -> void:
 
 func _on_area_input(_viewport, event, _shape_idx):
 	var window_position = Vector2(DisplayServer.window_get_position())
-	if event is InputEventMouseButton and event.double_click:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
 		print("Double click!")
-		if window_position.y >= all_screens.y:
+		if window_position.y >= all_screens.y - 20 and not idle:
+			var help = str(ghost.animation)
 			print("We're on the ground too!")
 			ghost.play("pet")
-			idle_timer = 100
+			idle_timer = 1
 			idle = true
 			await ghost.animation_finished
+			ghost.play(help)
 			idle_timer = 0
 			idle = false
 		return

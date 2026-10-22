@@ -617,7 +617,7 @@ animations = [{
 }],
 "loop": 0,
 "name": &"shade",
-"speed": 30.0
+"speed": 24.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -712,7 +712,6 @@ position = Vector2(99, 104)
 scale = Vector2(0.79980475, 0.8095704)
 sprite_frames = SubResource("SpriteFrames_7dm0k")
 animation = &"shade"
-frame_progress = 1.0
 
 [node name="Area2D" type="Area2D" parent="." unique_id=1823567980]
 

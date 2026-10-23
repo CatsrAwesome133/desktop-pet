@@ -60,7 +60,6 @@ func _ready():
 
 func _physics_process(delta: float) -> void:
 	var window_position = Vector2(DisplayServer.window_get_position())
-	var next_pos = window_position + (velocity + acc*delta)*delta
 	current_direction = sign(velocity.x)
 	
 	# Dragging trigger
@@ -287,7 +286,7 @@ func fix_turning():
 
 func maybe_shade():
 	if randf() < 0.0001:
-		var last_anim = ghost.animation
+		var last = ghost.animation
 		match randi() % 4:
 			0:
 				ghost.play("shade")
@@ -298,4 +297,4 @@ func maybe_shade():
 			3:
 				ghost.play("shade_yes")
 		await ghost.animation_finished
-		ghost.play(last_anim)
+		ghost.play(last)
